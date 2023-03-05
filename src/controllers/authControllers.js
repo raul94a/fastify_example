@@ -68,7 +68,6 @@ async function loginHandler(fastify, req, reply) {
         const result = await bcrypt.compare(password, hashedPassword);
         if (!result) {
             return reply.code(404).send({ 'error': 'alguna de las credenciales no es correcta' })
-
         }
         const accessToken = await acessTokenRepository.findAccessTokenByUser(user.id);
         let tokenData = {
@@ -102,30 +101,35 @@ async function loginHandler(fastify, req, reply) {
 }
 
 async function refreshTokenHandler(fastify, req, reply) {
-    const acessTokenRepository = new AccessTokenRepository(pool)
+    try {
 
-    const body = req.body;
-    if (!body['access_token'] || !body['email']) {
-        return reply.code(401).send({ 'error': 'bad request' });
+        const acessTokenRepository = new AccessTokenRepository(pool)
+
+        const body = req.body;
+        if (!body['access_token'] || !body['email']) {
+            return reply.code(401).send({ 'error': 'bad request' });
+        }
+        const { access_token, email } = body;
+        const accessTokenDB = await acessTokenRepository.findAccessTokenByToken(access_token);
+        if (!accessTokenDB) {
+            console.log('no token', accessTokenDB);
+            return reply.code(401).send({ 'error': 'Unauthorized' });
+        }
+        const verification = fastify.jwt.verify(access_token);
+        const isVerified = verification.email === email;
+        if (!isVerified) {
+            console.log('no token', 'NOT VERIFIED');
+
+            return reply.code(401).send({ 'error': 'Unauthorized' });
+        }
+
+        const newToken = fastify.jwt.sign({ email })
+        const refresh = await acessTokenRepository.refresh(access_token, newToken);
+
+        return reply.send(refresh);
+    } catch (ex) {
+        return reply.code(500).send({ 'error': 'Internal server error' });
     }
-    const { access_token, email } = body;
-    const accessTokenDB = await acessTokenRepository.findAccessTokenByToken(access_token);
-    if (!accessTokenDB) {
-        console.log('no token', accessTokenDB);
-        return reply.code(401).send({ 'error': 'Unauthorized' });
-    }
-    const verification = fastify.jwt.verify(access_token);
-    const isVerified = verification.email === email;
-    if (!isVerified) {
-        console.log('no token', 'NOT VERIFIED');
-
-        return reply.code(401).send({ 'error': 'Unauthorized' });
-    }
-
-    const newToken = fastify.jwt.sign({ email })
-    const refresh = await acessTokenRepository.refresh(access_token, newToken);
-
-    return reply.send(refresh);
 }
 
 
