@@ -1,0 +1,24 @@
+# POST http://localhost:3000/auth/register
+# Content-Type: application/json
+
+# {
+#     "name": "Raul Albín",
+#     "email": "raul200794@gmail.com",
+#     "password": "13456"
+# } 
+
+
+# POST http://localhost:3000/auth/login
+# Content-Type: application/json
+
+# {
+#     "email": "raul200794@gmail.com",
+#     "password": "13456"
+# }
+
+POST http://localhost:3000/auth/refreshToken
+Content-Type: application/json
+
+{
+    "access_token": "myRefreshedNewToken"
+}

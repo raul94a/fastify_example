@@ -1,27 +1,68 @@
-const fastify = require('fastify')({ logger: true })
+const fastify = require('fastify')({ logger: true, trustProxy: true })
+const multipart = require('@fastify/multipart');
+
+const fs = require('fs');
+const pipeline = require('stream').pipeline;
+const util = require('util');
+const User = require('./src/models/user');
+const UserRepository = require('./src/repositories/userRepository');
+
+const usersRoute = require('./src/routes/user');
+const authRoutes = require('./src/routes/auth');
+const auth = require('./src/routes/auth');
+
+fastify.register(multipart);
 
 
 
+// fastify.get('/users', async (req, reply) => {
+//   fastify.log.info({ ip: req.ips })
+//   // console.log('returning from the cache',cache)
+ 
 
-
-fastify.register(require('@fastify/mysql'), {
-    user:'fastify',
-    port:3306,
-    host: '172.18.45.11', 
-    database:'FASTIFY_TEST',
-    password:'********'
-  })
-
+//   const repo = new UserRepository(pool);
+//     // const [rows,fields] = await pool.query('select * from users',);
+//     // cache = rows;
+//     const rows = await repo.findAll();
+//     return reply.send(rows)
   
+  
+// });
 
-fastify.get('/users', (req,reply)=>{
-    fastify.mysql.query(
-        'select * from users',
-        function onResult(err,result){
-            reply.send(err || result)
-        }
-    )
+fastify.register(usersRoute)
+fastify.register(authRoutes.registration)
+fastify.register(authRoutes.login)
+fastify.register(authRoutes.refreshToken)
+
+fastify.get('/upload', async (req, reply) => {
+  
+  reply.headers({ 'Content-Type': 'text/html', 'charset': 'utf-8' });
+  reply.send(`<html><head></head><body>
+               <form method="POST" enctype="multipart/form-data" >
+                <input type="text" name="textfield"><br>
+                <input type="file" name="filefield"><br>
+                <input type="submit">
+              </form>
+            </body></html>`)
 });
+
+fastify.post('/upload', async (req, reply) => {
+  const data = await req.file();
+  const pump = util.promisify(pipeline)
+  await pump(data.file, fs.createWriteStream(`./files/${data.filename}`))
+  console.log(data)
+});
+
+fastify.get('/file', async (req, reply) => {
+  const filename = 'DETALLE_CV_ALBIN_ALBA_RAUL.pdf';
+  const filepath = './files/DETALLE_CV_ALBIN_ALBA_RAUL.pdf';
+  reply.headers({
+    "Content-Type": "application/octet-stream",
+    "Content-Disposition": "attachment; filename=" + filename
+  });
+  const stream = fs.createReadStream(filepath);
+  return reply.send(stream);
+})
 
 fastify.route({
   method: 'GET',
@@ -52,7 +93,7 @@ fastify.route({
 
 const start = async () => {
   try {
-    await fastify.listen({ port: 3000 })
+    await fastify.listen({ host: '::', port: 3000 })
   } catch (err) {
     fastify.log.error(err)
     process.exit(1)
