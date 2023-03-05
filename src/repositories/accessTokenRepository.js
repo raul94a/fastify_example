@@ -3,14 +3,25 @@ class AccessTokenRepository {
         this.connection = connection;
     }
 
-    async refresh(token){
+    async refresh(token, newToken){
         try{    
             const d =  new Date(Date.now() + 3600 * 1000);
             console.log(d.toISOString());
-            const accessToken = await this.connection.query(
-                'UPDATE access_token set token = ?, expiration_date = ? where token = ?', ["myRefreshedNewToken", d,token]);
-            console.log(accessToken);
-            // return await this.connection.query)
+             await this.connection.query(
+                'UPDATE access_token set token = ?, expiration_date = ? where token = ?', [newToken, d,token]);
+           return {'expiration_date': d, 'access_token': newToken};
+        }catch(ex){
+            throw ex;
+        }
+    }
+
+    async refreshByUserId(userId, token){
+        try{    
+            const d =  new Date(Date.now() + 3600 * 1000);
+         
+             await this.connection.query(
+                'UPDATE access_token set token = ?, expiration_date = ? where user_id = ?', [token, d, userId]);
+           return {'expiration_date': d, 'access_token': token};
         }catch(ex){
             throw ex;
         }

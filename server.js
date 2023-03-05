@@ -1,33 +1,21 @@
 const fastify = require('fastify')({ logger: true, trustProxy: true })
 const multipart = require('@fastify/multipart');
 
+
 const fs = require('fs');
 const pipeline = require('stream').pipeline;
 const util = require('util');
-const User = require('./src/models/user');
-const UserRepository = require('./src/repositories/userRepository');
+
 
 const usersRoute = require('./src/routes/user');
 const authRoutes = require('./src/routes/auth');
-const auth = require('./src/routes/auth');
 
+fastify.register(require('@fastify/jwt'), {
+  secret: 'd76b61867737f3dcfb299196dae9054f',
+  
+  
+});
 fastify.register(multipart);
-
-
-
-// fastify.get('/users', async (req, reply) => {
-//   fastify.log.info({ ip: req.ips })
-//   // console.log('returning from the cache',cache)
- 
-
-//   const repo = new UserRepository(pool);
-//     // const [rows,fields] = await pool.query('select * from users',);
-//     // cache = rows;
-//     const rows = await repo.findAll();
-//     return reply.send(rows)
-  
-  
-// });
 
 fastify.register(usersRoute)
 fastify.register(authRoutes.registration)

@@ -6,11 +6,14 @@ const UserRepository = require('../repositories/userRepository');
 
 
 
-async function registerHandler(req, reply) {
+async function registerHandler(fastify, req, reply) {
     const userRepository = new UserRepository(pool);
     const acessTokenRepository = new AccessTokenRepository(pool)
     //request the body
     const body = req.body;
+    if (!body['password'] || !body['email'] || !body['name']) {
+        return reply.code(401).send({ 'error': 'bad request' });
+    }
     const { name, email, password } = body;
     try {
         //1. Check if users exists
@@ -23,14 +26,16 @@ async function registerHandler(req, reply) {
         const hash = await bcrypt.hash(password, 10);
         const userId = await userRepository.createUser(name, email, hash);
         //3. create an access Token
-        const myAccessToken = 'ze655987411.kkkfifff55f0f1';
-        acessTokenRepository.createAccessToken(myAccessToken, userId);
+        const token = fastify.jwt.sign({ email })
+
+
+        acessTokenRepository.createAccessToken(token, userId);
         return reply.send({
             name: name,
             email: email,
             password: password,
             hash: hash,
-            accessToken: myAccessToken
+            accessToken: token
 
 
         })
@@ -38,16 +43,20 @@ async function registerHandler(req, reply) {
 
 
     } catch (exception) {
+        console.log(exception)
         reply.code(500).send({ 'error': 'Internal server error' })
     }
 }
 
 
-async function loginHandler(req, reply) {
+async function loginHandler(fastify, req, reply) {
     const userRepository = new UserRepository(pool);
     const acessTokenRepository = new AccessTokenRepository(pool)
     //request the body
     const body = req.body;
+    if (!body['password'] || !body['email']) {
+        return reply.code(401).send({ 'error': 'bad request' });
+    }
     const { email, password } = body;
     try {
 
@@ -62,12 +71,26 @@ async function loginHandler(req, reply) {
 
         }
         const accessToken = await acessTokenRepository.findAccessTokenByUser(user.id);
+        let tokenData = {
+            access_token: accessToken.token,
+            expiration_date: accessToken['expiration_date']
+        };
+        const accessTokenExpirationDate = accessToken['expiration_date'];
+        const expirationDate = new Date(accessTokenExpirationDate);
+        const currentDate = new Date(Date.now());
+
+        if (expirationDate.getTime() < currentDate.getTime()) {
+            const token = fastify.jwt.sign({ email })
+            tokenData = await acessTokenRepository.refreshByUserId(user.id, token);
+        }
+
+        delete user['password'];
         delete user['created_at'];
         delete user['updated_at'];
+
         return reply.send({
             ...user, credentials: {
-                access_token: accessToken.token,
-                expiration_date: accessToken['expiration_date']
+                ...tokenData
             }
         });
 
@@ -78,14 +101,31 @@ async function loginHandler(req, reply) {
 
 }
 
-async function refreshTokenHandler(req,reply){
+async function refreshTokenHandler(fastify, req, reply) {
     const acessTokenRepository = new AccessTokenRepository(pool)
 
     const body = req.body;
-    const {access_token} = body;
-    const accessToken = await acessTokenRepository.refresh(access_token);
+    if (!body['access_token'] || !body['email']) {
+        return reply.code(401).send({ 'error': 'bad request' });
+    }
+    const { access_token, email } = body;
+    const accessTokenDB = await acessTokenRepository.findAccessTokenByToken(access_token);
+    if (!accessTokenDB) {
+        console.log('no token', accessTokenDB);
+        return reply.code(401).send({ 'error': 'Unauthorized' });
+    }
+    const verification = fastify.jwt.verify(access_token);
+    const isVerified = verification.email === email;
+    if (!isVerified) {
+        console.log('no token', 'NOT VERIFIED');
 
-    return reply.send({refreshed: true});
+        return reply.code(401).send({ 'error': 'Unauthorized' });
+    }
+
+    const newToken = fastify.jwt.sign({ email })
+    const refresh = await acessTokenRepository.refresh(access_token, newToken);
+
+    return reply.send(refresh);
 }
 
 

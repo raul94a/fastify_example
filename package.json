@@ -1,6 +1,7 @@
 {
   "dependencies": {
     "@fastify/busboy": "^1.2.1",
+    "@fastify/jwt": "^6.6.0",
     "@fastify/multipart": "^7.4.1",
     "@fastify/mysql": "^4.1.0",
     "bcrypt": "^5.1.0",
