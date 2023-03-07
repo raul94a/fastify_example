@@ -27,6 +27,21 @@ class InvitationsRepository {
         }
     }
 
+    async findByEmail(email){
+        const sql = 'SELECT * FROM invitations WHERE email = ? and accepted = FALSE AND expiration_time < NOW()';
+        const values = [email];
+
+        try {
+            const [rows] = await this.connection.execute(sql, values);
+            const invitations = rows;
+            return invitations;
+        } catch (error) {
+            console.error('Error finding invitation by id:', error);
+            throw error;
+        }
+
+    }
+
     async deleteById(id) {
         const sql = 'DELETE FROM invitations WHERE id = ?';
         const values = [id];
@@ -92,3 +107,5 @@ class InvitationsRepository {
         return rows;
       }
 }
+
+module.exports = InvitationsRepository;

@@ -38,6 +38,7 @@ CREATE TABLE invitations (
   id INT NOT NULL AUTO_INCREMENT,
   secret VARCHAR(255) NOT NULL,
   invited_by INT NOT NULL,
+  user_id INT NOT NULL,
   email varchar(255) NOT NULL,
   event_id INT UNSIGNED NOT NULL,
   accepted BOOLEAN DEFAULT false,
@@ -45,6 +46,8 @@ CREATE TABLE invitations (
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW() ON UPDATE NOW(),
   PRIMARY KEY (id),
+    FOREIGN KEY fk_invitations_users_received (user_id) REFERENCES users(id) ON DELETE CASCADE,
+
   FOREIGN KEY fk_invitations_users (invited_by) REFERENCES users(id) ON DELETE CASCADE,
   FOREIGN KEY fk_invitations_event (event_id)  REFERENCES events(id) ON DELETE CASCADE
 );

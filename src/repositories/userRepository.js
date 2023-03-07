@@ -3,6 +3,17 @@ class UserRepository {
       this.connection = connection;
     }
 
+    async findByAccessToken(accessToken) {
+      const sql = 'SELECT u.id from users u INNER JOIN access_token a on a.user_id = u.id';
+      try{
+        const [rows] = await this.connection.query(sql);
+        return rows[0];
+      }
+      catch(ex){
+        throw ex;
+      }
+    }
+
     async findAll() {
         const sql = 'SELECT * FROM users';
         try{
