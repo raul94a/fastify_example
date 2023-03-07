@@ -3,13 +3,13 @@ class AccessTokenRepository {
         this.connection = connection;
     }
 
-    async refresh(token, newToken){
+    async refresh(token, newToken, newExpirationDate){
         try{    
-            const d =  new Date(Date.now() + 3600 * 1000);
-            console.log(d.toISOString());
+           
+           
              await this.connection.query(
-                'UPDATE access_token set token = ?, expiration_date = ? where token = ?', [newToken, d,token]);
-           return {'expiration_date': d, 'access_token': newToken};
+                'UPDATE access_token set token = ?, expiration_date = ? where token = ?', [newToken, newExpirationDate,token]);
+         
         }catch(ex){
             throw ex;
         }

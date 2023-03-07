@@ -8,19 +8,19 @@
 # } 
 
 
-POST http://localhost:3000/auth/login
-Content-Type: application/json
-
-{
-    "email": "raul200794@gmail.com",
-    "password": "123456"
-}
-
-# POST http://localhost:3000/auth/refreshToken
+# POST http://localhost:3000/auth/login
 # Content-Type: application/json
 
 # {
 #     "email": "raul200794@gmail.com",
-#     "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InJhdWwyMDA3OTRAZ21haWwuY29tIiwiaWF0IjoxNjc4MDQzNTUxfQ._mNKFgKFisWS5UlTAYlN4bTnht0zitxHB7ebAhH6Chs"
-
+#     "password": "123456"
 # }
+
+POST http://localhost:3000/auth/refreshToken
+Content-Type: application/json
+Authorization: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InJhdWwyMDA3OTRAZ21haWwuY29tIiwiaWF0IjoxNjc4MjI1MDk3fQ.vDweEQ8ksntVxqEonf206BfHsasQQ3xAi3bIQNnuuIM
+
+{
+    "email": "raul200794@gmail.com",
+
+}

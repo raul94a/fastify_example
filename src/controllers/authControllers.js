@@ -105,18 +105,16 @@ async function refreshTokenHandler(fastify, req, reply) {
     try {
 
         const acessTokenRepository = new AccessTokenRepository(pool)
-
         const body = req.body;
-        if (!body['access_token'] || !body['email']) {
+        const headers = req.headers;
+        const {authorization} = headers;
+        console.log(authorization);
+        if (!body['email']) {
             return reply.code(401).send({ 'error': 'bad request' });
         }
-        const { access_token, email } = body;
-        const accessTokenDB = await acessTokenRepository.findAccessTokenByToken(access_token);
-        if (!accessTokenDB) {
-            console.log('no token', accessTokenDB);
-            return reply.code(401).send({ 'error': 'Unauthorized' });
-        }
-        const verification = fastify.jwt.verify(access_token);
+        const { email } = body;
+        
+        const verification = fastify.jwt.verify(authorization);
         const isVerified = verification.email === email;
         if (!isVerified) {
             console.log('no token', 'NOT VERIFIED');
@@ -125,7 +123,13 @@ async function refreshTokenHandler(fastify, req, reply) {
         }
 
         const newToken = fastify.jwt.sign({ email })
-        const refresh = await acessTokenRepository.refresh(access_token, newToken);
+
+        const newExpirationDate =  new Date(Date.now() + 3600 * 1000);
+        acessTokenRepository.refresh(authorization,newToken, newExpirationDate );
+        const refresh = {
+            access_token: newToken,
+            expiration_date: newExpirationDate
+        };
 
         return reply.send(refresh);
     } catch (ex) {

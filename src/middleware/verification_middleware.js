@@ -13,16 +13,15 @@ const allowedUrls  = {
 
 async function verify(req, reply, done) {
 
-   
     if(!allowedUrls[req.url]){
-        return reply.send({error: 'The route does not exist'});
+        return reply.code(404).send({error: 'The route does not exist'});
     }
     if(unprotectedUrls[req.url]){
        return done();
     }
     const headers  = req.headers;
-    if(!headers['Authorization']){
-        return reply.send({error: 'Unauthorised'});
+    if(!headers['authorization']){
+        return reply.code(401).send({error: 'Unauthorised'});
     }
     done();
 }
