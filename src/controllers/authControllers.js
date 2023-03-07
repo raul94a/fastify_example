@@ -30,6 +30,7 @@ async function registerHandler(fastify, req, reply) {
 
 
         acessTokenRepository.createAccessToken(token, userId);
+        console.log('Reply headers', reply.getHeaders());
         return reply.send({
             name: name,
             email: email,

@@ -17,7 +17,7 @@ INSERT INTO events (name, description, place, is_free) VALUES
 ('Charity Run', 'A 5k run to raise money for cancer research', 'Golden Gate Park, San Francisco', false);
 
 -- User_Event_Permission table
-INSERT INTO user_event_permission (user_id, event_id, permission_id) VALUES
+INSERT INTO user_permission_events (user_id, event_id, permission_id) VALUES
 (1, 1, 1),
 (2, 1, 2),
 (3, 1, 3),

@@ -2,7 +2,7 @@
 const authController = require('../controllers/authControllers')
 
 function registration(fastify, opts, done) {
-    fastify.post('/auth/register', (req, reply) => authController.registerHandler(fastify, req, reply));
+    fastify.post('/auth/registration', (req, reply) => authController.registerHandler(fastify, req, reply));
     done();
 }
 

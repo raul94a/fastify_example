@@ -12,18 +12,32 @@ const authRoutes = require('./src/routes/auth');
 
 fastify.register(require('@fastify/jwt'), {
   secret: 'd76b61867737f3dcfb299196dae9054f',
-  
-  
+
+
 });
 fastify.register(multipart);
 
 fastify.register(usersRoute)
+//Auth routes
 fastify.register(authRoutes.registration)
 fastify.register(authRoutes.login)
 fastify.register(authRoutes.refreshToken)
 
+///CORS
+
+fastify.addHook('preHandler',(req,res, done) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Headers', 'Authorization, Origin, X-Requested-With, Content-Type, Accept, Access-Control-Allow-Request-Method');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE, PATCH');
+  res.header('Allow', 'GET, POST, OPTIONS, PUT, DELETE, PATCH');
+  require('./src/middleware/verification_middleware').verify(req,res,done);
+});
+
+
+///END CORS
+
 fastify.get('/upload', async (req, reply) => {
-  
+
   reply.headers({ 'Content-Type': 'text/html', 'charset': 'utf-8' });
   reply.send(`<html><head></head><body>
                <form method="POST" enctype="multipart/form-data" >
@@ -88,3 +102,8 @@ const start = async () => {
   }
 }
 start()
+
+
+module.exports = {
+  fastifyPlugin: fastify
+}
