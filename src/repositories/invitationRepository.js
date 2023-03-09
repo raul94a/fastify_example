@@ -28,18 +28,28 @@ class InvitationsRepository {
     }
 
     async findByEmail(email){
-        const sql = 'SELECT * FROM invitations WHERE email = ? and accepted = FALSE AND expiration_time < NOW()';
+        const sql = 'SELECT * FROM invitations WHERE email = ? and accepted is FALSE AND expiration_time < NOW()';
         const values = [email];
-
         try {
             const [rows] = await this.connection.execute(sql, values);
-            const invitations = rows;
-            return invitations;
+            
+            return rows;
         } catch (error) {
             console.error('Error finding invitation by id:', error);
             throw error;
         }
 
+    }
+
+    async acceptInvitation(id){
+        const sql = 'update invitations set accepted = TRUE where id = ?';
+        const values = [id];
+        try{
+            await this.connection.execute(sql,values);
+        
+        }catch(exception){
+            throw exception;
+        }
     }
 
     async deleteById(id) {

@@ -4,14 +4,14 @@ class EventUserRepository {
     }
   
     async create(eventId, userId) {
-      const query = `INSERT INTO event_users (event_id, user_id) VALUES (?, ?)`;
+      const query = `INSERT INTO user_events (event_id, user_id) VALUES (?, ?)`;
       const values = [eventId, userId];
       const [result] = await this.connection.execute(query, values);
       return result.insertId;
     }
   
     async delete(eventId, userId) {
-      const query = `DELETE FROM event_users WHERE event_id = ? AND user_id = ?`;
+      const query = `DELETE FROM user_events WHERE event_id = ? AND user_id = ?`;
       const values = [eventId, userId];
       const [result] = await this.connection.execute(query, values);
       return result.affectedRows > 0;
@@ -45,7 +45,7 @@ class EventUserRepository {
           e.longitude as event_longitude,
           e.is_free as event_is_free
         FROM
-          event_users eu
+          user_events eu
           JOIN events e ON e.id = eu.event_id
         WHERE
           eu.user_id = ?`;
@@ -65,7 +65,7 @@ class EventUserRepository {
           e.longitude as event_longitude,
           e.is_free as event_is_free
         FROM
-          event_users eu
+          user_events eu
           JOIN events e ON e.id = eu.event_id
         WHERE
           eu.user_id = ?`;
@@ -75,19 +75,11 @@ class EventUserRepository {
     }
   
     async getUsersByEventId(eventId) {
-      const query = `
-        SELECT
-          eu.event_id,
-          u.id as user_id,
-          u.name as user_name,
-          u.email as user_email
-        FROM
-          event_users eu
-          JOIN users u ON u.id = eu.user_id
-        WHERE
-          eu.event_id = ?`;
+      const sql = 'select u.email, u.name, u.id from users u inner join user_events eu on eu.user_id = u.id where eu.event_id = ?';
+        console.log(sql);
       const values = [eventId];
-      const [rows] = await this.connection.execute(query, values);
+      const [rows] = await this.connection.execute(sql, values);
+    
       return rows;
     }
   }

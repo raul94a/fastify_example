@@ -10,6 +10,7 @@ const util = require('util');
 const usersRoute = require('./src/routes/user');
 const authRoutes = require('./src/routes/auth');
 const invitationRoutes = require('./src/routes/invitations');
+const eventsRoutes = require('./src/routes/event');
 
 fastify.register(require('@fastify/jwt'), {
   secret: 'd76b61867737f3dcfb299196dae9054f',
@@ -26,6 +27,11 @@ fastify.register(authRoutes.refreshToken)
 
 //invitations
 fastify.register(invitationRoutes.getInvitationsOfUser);
+
+//evenet
+fastify.register(eventsRoutes.createEvent);
+fastify.register(eventsRoutes.getEventsOfUser);
+fastify.register(eventsRoutes.getUsersOfEvent);
 
 ///CORS
 
