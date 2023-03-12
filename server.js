@@ -11,6 +11,7 @@ const usersRoute = require('./src/routes/user');
 const authRoutes = require('./src/routes/auth');
 const invitationRoutes = require('./src/routes/invitations');
 const eventsRoutes = require('./src/routes/event');
+const pictureRoutes = require('./src/routes/picture');
 
 fastify.register(require('@fastify/jwt'), {
   secret: 'd76b61867737f3dcfb299196dae9054f',
@@ -32,6 +33,9 @@ fastify.register(invitationRoutes.getInvitationsOfUser);
 fastify.register(eventsRoutes.createEvent);
 fastify.register(eventsRoutes.getEventsOfUser);
 fastify.register(eventsRoutes.getUsersOfEvent);
+
+//picutres
+fastify.register(pictureRoutes.sendPicture);
 
 ///CORS
 
@@ -60,6 +64,8 @@ fastify.get('/upload', async (req, reply) => {
 
 fastify.post('/upload', async (req, reply) => {
   const data = await req.file();
+  
+  (await data.toBuffer()).length
   const pump = util.promisify(pipeline)
   await pump(data.file, fs.createWriteStream(`./files/${data.filename}`))
   console.log(data)

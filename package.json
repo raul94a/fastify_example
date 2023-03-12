@@ -6,7 +6,8 @@
     "@fastify/mysql": "^4.1.0",
     "bcrypt": "^5.1.0",
     "fastify": "^4.13.0",
-    "mysql2": "^3.2.0"
+    "mysql2": "^3.2.0",
+    "uuid": "^9.0.0"
   },
   "name": "fastify_example",
   "version": "1.0.0",

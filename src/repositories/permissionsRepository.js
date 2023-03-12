@@ -35,4 +35,8 @@ class PermissionRepository {
       await this.connection.execute(query, [id]);
     }
   }
+
+
+
+  module.exports = PermissionRepository;
   
