@@ -5,17 +5,17 @@ const fs = require('fs/promises');
 
 /**
  * 
- * @returns {nodemailer.Transporter<SMTPTransport.SentMessageInfo>}
+ * @returns {Promise<nodemailer.Transporter<SMTPTransport.SentMessageInfo>>}
  */
-function getTransport() {
-    // Credenciales de la clave de API
+async function getTransport() {
+    //TODO:  LAS  CREDECIALES DEBEN VENIR D EUNA BASE DE DATOS
     const credentials = {
         client_id: process.env.EMAIL_CLIENT_ID,
         client_secret: process.env.EMAIL_CLIENT_SECRET,
         // redirect_uris: ['TU_URI_DE_REDIRECCION'],
     };
     const myOAuth2Client = new OAuth2(
-        credentials.client_id, credentials.client_secret, 'https://developers.google.com/oauthplayground');
+        credentials.client_id, credentials.client_secret, 'https://developers.google.com/oauthplayground/');
 
     // Generate an authentication URL and print it to the console
     // const authUrl = myOAuth2Client.generateAuthUrl({
@@ -23,13 +23,31 @@ function getTransport() {
     //     scope: SCOPES,
     // });
     //    console.log('Authorize this app by visiting this URL:', authUrl);
-    myOAuth2Client.setCredentials({ access_token: process.env.EMAIL_ACCESS_TOKEN })
+
+    let refreshToken = process.env.EMAIL_REFRESH_TOKEN;
+    let accessToken = process.env.EMAIL_ACCESS_TOKEN;
 
     myOAuth2Client.setCredentials({
-        refresh_token: process.env.EMAIL_REFRESH_TOKEN
-
+        refresh_token: refreshToken,
+        access_token: accessToken,
     })
+
+    const tokenInfo = await myOAuth2Client.getTokenInfo(accessToken)
+    console.log('emailController/SendValidatioEmail', tokenInfo)
+    const expiryDate = tokenInfo.expiry_date;
+    const currentDate = Date.now()
+    if (expiryDate <= currentDate) {
+        console.log('emailController/SendValidatioEmail', process.env.EMAIL_ACCESS_TOKEN, process.env.EMAIL_REFRESH_TOKEN)
+        const response = await myOAuth2Client.refreshAccessToken()
+        const {access_token,refresh_token} = response.credentials;
+        refreshToken =   refresh_token;
+        accessToken =  access_token;
+    }
+
+
+
     // const myAccessToken =  myOAuth2Client.getAccessToken()
+  
     const transport = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -52,43 +70,11 @@ function getTransport() {
  * @param {string} eventName
  * @param {string} verificationCode
  */
-async function sendValidationEmail(email, verificationCode,userId) {
+async function sendValidationEmail(email, verificationCode, userId) {
     // Credenciales de la clave de API
-    const url = `http://192.168.1.114:3000/auth/user/${userId}/validate/${verificationCode}`;
-    const credentials = {
-        client_id: process.env.EMAIL_CLIENT_ID,
-        client_secret: process.env.EMAIL_CLIENT_SECRET,
-        // redirect_uris: ['TU_URI_DE_REDIRECCION'],
-    };
-    const myOAuth2Client = new OAuth2(
-        credentials.client_id, credentials.client_secret, 'https://developers.google.com/oauthplayground/');
-
-    // Generate an authentication URL and print it to the console
-    // const authUrl = myOAuth2Client.generateAuthUrl({
-    //     access_type: 'offline',
-    //     scope: SCOPES,
-    // });
-    //    console.log('Authorize this app by visiting this URL:', authUrl);
-    
-
-    myOAuth2Client.setCredentials({
-        refresh_token: process.env.EMAIL_REFRESH_TOKEN
-
-    })
-    // const myAccessToken =  myOAuth2Client.getAccessToken()
-    const transport = nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            type: "OAuth2",
-
-            user: "raul.albin.alba@gmail.com", //your gmail account you used to set the project up in google cloud console"
-            clientId: credentials.client_id,
-            clientSecret: credentials.client_secret,
-            refreshToken: process.env.EMAIL_REFRESH_TOKEN,
-            accessToken: process.env.EMAIL_ACCESS_TOKEN //access token variable we defined earlier
-        }
-    });
-
+    const url = `http://192.168.1.43:3000/auth/user/${userId}/validate/${verificationCode}`;
+   
+    const transport =  await getTransport();
     const html = await parseHTML(
         './src/views/email/invitation_email.html', {
         '${title}': 'Te has registrado correctamente en la App',
@@ -129,7 +115,7 @@ async function sendValidationEmail(email, verificationCode,userId) {
  */
 async function sendInvitationEmail(email, username, eventName, verificationCode) {
 
-    const transport = getTransport();
+    const transport = await getTransport();
 
     const html = await parseHTML(
         './src/views/email/invitation_email.html', {
