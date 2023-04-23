@@ -82,18 +82,15 @@ class EventUserRepository {
   }
 
   async getUsersByEventId(eventId) {
-    const sql = `
-      select u.email, u.name, u.id , p.name "permission_name", p.id as "permission_id", p.description as "permission_description" 
-      from users u 
+    const sql = `select u.email, u.name, u.id , p.name ´permission_name´, p.id as ´permission_id´, p.description as ´permission_description´ from users u 
       inner join user_events eu on eu.user_id = u.id 
       INNER JOIN user_permissions_events upe ON upe.event_id = eu.event_id
       INNER JOIN permissions p ON p.id = upe.permission_id
-      where eu.event_id = ?
-    `;
-    console.log(sql);
+      where eu.event_id = ?`;
+   
     const values = [eventId];
     const [rows] = await this.connection.execute(sql, values);
-
+ 
     return rows;
   }
 }

@@ -69,7 +69,8 @@ async function loginHandler(fastify, req, reply) {
         if (!user) {
             return reply.code(404).send({ 'error': 'alguna de las credenciales no es correcta' })
         }
-        if(user.validated !==true){
+        console.log(user.validated);
+        if(!user.validated){
             return reply.code(404).send({ 'error': 'User has not been validated' })
 
         }
@@ -93,8 +94,8 @@ async function loginHandler(fastify, req, reply) {
         }
 
         delete user['password'];
-        delete user['created_at'];
-        delete user['updated_at'];
+        // delete user['created_at'];
+        // delete user['updated_at'];
 
         return reply.send({
             ...user, credentials: {

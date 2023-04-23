@@ -31,23 +31,27 @@ async function getTransport() {
         refresh_token: refreshToken,
         access_token: accessToken,
     })
+    try {
 
-    const tokenInfo = await myOAuth2Client.getTokenInfo(accessToken)
-    console.log('emailController/SendValidatioEmail', tokenInfo)
-    const expiryDate = tokenInfo.expiry_date;
-    const currentDate = Date.now()
-    if (expiryDate <= currentDate) {
-        console.log('emailController/SendValidatioEmail', process.env.EMAIL_ACCESS_TOKEN, process.env.EMAIL_REFRESH_TOKEN)
-        const response = await myOAuth2Client.refreshAccessToken()
-        const {access_token,refresh_token} = response.credentials;
-        refreshToken =   refresh_token;
-        accessToken =  access_token;
+        const tokenInfo = await myOAuth2Client.getTokenInfo(accessToken)
+        console.log('emailController/SendValidatioEmail', tokenInfo)
+        const expiryDate = tokenInfo.expiry_date;
+        const currentDate = Date.now()
+        if (expiryDate <= currentDate) {
+            console.log('emailController/SendValidatioEmail', process.env.EMAIL_ACCESS_TOKEN, process.env.EMAIL_REFRESH_TOKEN)
+            const response = await myOAuth2Client.refreshAccessToken()
+            const { access_token, refresh_token } = response.credentials;
+            refreshToken = refresh_token;
+            accessToken = access_token;
+        }
+
+    } catch (err) {
+
     }
 
 
-
     // const myAccessToken =  myOAuth2Client.getAccessToken()
-  
+
     const transport = nodemailer.createTransport({
         service: "gmail",
         auth: {
@@ -73,8 +77,8 @@ async function getTransport() {
 async function sendValidationEmail(email, verificationCode, userId) {
     // Credenciales de la clave de API
     const url = `http://192.168.1.43:3000/auth/user/${userId}/validate/${verificationCode}`;
-   
-    const transport =  await getTransport();
+
+    const transport = await getTransport();
     const html = await parseHTML(
         './src/views/email/invitation_email.html', {
         '${title}': 'Te has registrado correctamente en la App',

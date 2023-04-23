@@ -26,6 +26,7 @@ async function getEventUsers(req, reply) {
         if (!params['event_id']) {
             return reply.code(403).send({ error: 'bad request' });
         }
+
         const eventUserRepository = new EventUserRepository(pool);
         const { event_id } = params;
         const users = await eventUserRepository.getUsersByEventId(event_id);
@@ -53,7 +54,8 @@ async function createEvent(req, reply) {
 
         const event = isFreePresent ? body : {...body, is_free: false}; 
         const eventRepository = new EventRepository(pool);
-        const eventId = await eventRepository.createEvent(event)
+        const eventId = await eventRepository.cr
+        eateEvent(event)
         const eventUserRepository = new EventUserRepository(pool);
         //insert into permissions
         const permissionEventRepository = new UserPermissionEventRepository(pool);

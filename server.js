@@ -5,6 +5,7 @@ require('dotenv').config();
 const fs = require('fs');
 const pipeline = require('stream').pipeline;
 const util = require('util');
+const path = require('path')
 
 
 const usersRoute = require('./src/routes/user');
@@ -24,6 +25,14 @@ fastify.register(multipart,{
     files: 10,
   }
 });
+//static files
+fastify.register(require('@fastify/static'), {
+  root: path.join(__dirname, 'files'),
+  prefix: '/files/', // optional: default '/'
+  constraints: {} // optional: default {}
+})
+
+
 
 fastify.register(usersRoute)
 //Auth routes

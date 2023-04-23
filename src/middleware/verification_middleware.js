@@ -27,6 +27,7 @@ async function verify(req, reply, done) {
         return done();
     }
     const headers = req.headers;
+    console.log('verificationmiddleware',headers)
     if (!headers['authorization'] && !req.url.includes('validate')) {
         return reply.code(401).send({ error: 'Unauthorised' });
     }
@@ -40,7 +41,7 @@ async function verify(req, reply, done) {
     if(!req.url.includes('validate')){
 
         req.headers = {
-            user_id: result.id
+            user_id: result?.id
         }
     }
     done();
