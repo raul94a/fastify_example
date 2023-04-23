@@ -17,9 +17,16 @@ function refreshToken(fastify, opts, done) {
     fastify.post('/auth/refreshToken', (req, rep) => authController.refreshTokenHandler(fastify, req, rep))
     done();
 }
+function validate(fastify, opts, done) {
+    fastify.get('/auth/user/:userId/validate/:validationCode', authController.validateUser);
+    done();
+}
+
+
 
 
 module.exports = {
+    validateUser:validate,
     registration: registration,
     login: login,
     refreshToken: refreshToken

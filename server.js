@@ -1,6 +1,6 @@
 const fastify = require('fastify')({ logger: true, trustProxy: true })
 const multipart = require('@fastify/multipart');
-
+require('dotenv').config();
 
 const fs = require('fs');
 const pipeline = require('stream').pipeline;
@@ -18,16 +18,23 @@ fastify.register(require('@fastify/jwt'), {
 
 
 });
-fastify.register(multipart);
+fastify.register(multipart,{
+  limits: {
+    fileSize: 5.6e+8,
+    files: 10,
+  }
+});
 
 fastify.register(usersRoute)
 //Auth routes
 fastify.register(authRoutes.registration)
 fastify.register(authRoutes.login)
 fastify.register(authRoutes.refreshToken)
+fastify.register(authRoutes.validateUser);
 
 //invitations
 fastify.register(invitationRoutes.getInvitationsOfUser);
+fastify.register(invitationRoutes.sendInvitationByEmail);
 
 //evenet
 fastify.register(eventsRoutes.createEvent);
@@ -72,6 +79,7 @@ fastify.post('/upload', async (req, reply) => {
 });
 
 fastify.get('/file', async (req, reply) => {
+
   const filename = 'DETALLE_CV_ALBIN_ALBA_RAUL.pdf';
   const filepath = './files/DETALLE_CV_ALBIN_ALBA_RAUL.pdf';
   reply.headers({

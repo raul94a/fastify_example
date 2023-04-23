@@ -3,6 +3,8 @@ const pool = require('../database/mysql_connection');
 const AccessTokenRepository = require('../repositories/accessTokenRepository');
 
 const UserRepository = require('../repositories/userRepository');
+const emailController = require('./emailController');
+const { sendInvitationByEmail } = require('./invitationsController');
 
 
 
@@ -24,21 +26,23 @@ async function registerHandler(fastify, req, reply) {
         }
         //2. users does not exists: let's register it 
         const hash = await bcrypt.hash(password, 10);
-        const userId = await userRepository.createUser(name, email, hash);
+        const secret = createSecret(6);
+        const userId = await userRepository.createUser(name, email, secret,hash);
         //3. create an access Token
         const token = fastify.jwt.sign({ email })
 
 
-        acessTokenRepository.createAccessToken(token, userId);
-        console.log('Reply headers', reply.getHeaders());
+        await acessTokenRepository.createAccessToken(token, userId);
+        
+        emailController.sendValidationEmail(email,secret,userId)
+
+
         return reply.send({
             name: name,
             email: email,
             password: password,
             hash: hash,
             accessToken: token
-
-
         })
 
 
@@ -64,6 +68,10 @@ async function loginHandler(fastify, req, reply) {
         const user = await userRepository.findByEmail(email);
         if (!user) {
             return reply.code(404).send({ 'error': 'alguna de las credenciales no es correcta' })
+        }
+        if(user.validated !==true){
+            return reply.code(404).send({ 'error': 'User has not been validated' })
+
         }
         const hashedPassword = user.password;
         const result = await bcrypt.compare(password, hashedPassword);
@@ -135,11 +143,51 @@ async function refreshTokenHandler(fastify, req, reply) {
     } catch (ex) {
         return reply.code(500).send({ 'error': 'Internal server error' });
     }
+
 }
 
+
+async function validateUser(req,reply) {
+    try {
+            
+        const params = req.params;
+        const {userId, validationCode} = params;
+        const userRepo = new UserRepository(pool);
+        const user = await  userRepo.getUserById(userId);
+        if(validationCode !== user['valid_code']){
+            return reply.code(403).send({error: 'Bad request'})
+        }
+        if(user['valid_code'] === true){
+            return reply.code(403).send({error: 'The user has been validated previously.'})
+        }
+
+
+        await userRepo.validateUser(userId);
+
+        return reply.send({success:true, message: 'The user has been validated successfuly'});
+    } catch (ex) {
+        return reply.code(500).send({ 'error': 'Internal server error' });
+    }
+}
 
 module.exports = {
     registerHandler: registerHandler,
     loginHandler: loginHandler,
-    refreshTokenHandler: refreshTokenHandler
+    refreshTokenHandler: refreshTokenHandler,
+    validateUser: validateUser
+}
+
+
+
+
+function createSecret(secretSize){
+    const array = '0123456789asdfghjklqwertyuiopzxcvbnmASDFGHJKLZXCVBNMQWERTYUIOP'
+    const length = array.length;
+    let secret = '';
+    for(let i = 0; i < secretSize; i++){
+        const randomNumber = Math.floor((Math.random() * (length - 1)));
+        const char = array[randomNumber];
+        secret += char;
+    }
+    return secret;
 }

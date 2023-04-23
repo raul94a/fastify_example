@@ -1,12 +1,13 @@
+const User = require('../models/User')
 class UserRepository {
     constructor(connection) {
       this.connection = connection;
     }
 
     async findByAccessToken(accessToken) {
-      const sql = 'SELECT u.id from users u INNER JOIN access_token a on a.user_id = u.id';
+      const sql = 'SELECT u.id, a.expiration_date from users u INNER JOIN access_token a on a.user_id = u.id where a.token = ?';
       try{
-        const [rows] = await this.connection.query(sql);
+        const [rows] = await this.connection.query(sql,[accessToken]);
         return rows[0];
       }
       catch(ex){
@@ -23,7 +24,11 @@ class UserRepository {
             throw err;
         }
     }
-  
+    /**
+     * 
+     * @param {string} userId 
+     * @returns {Promise<any>}
+     */
     async getUserById(userId) {
       try {
         const query = 'SELECT * FROM users WHERE id = ?';
@@ -44,13 +49,24 @@ class UserRepository {
       }
     }
   
-    async createUser(name, email, password) {
+    async createUser(name, email, secret, password) {
       try {
-        const query = 'INSERT INTO users (name, email, password) VALUES (?, ?, ?)';
-        const result = await this.connection.query(query, [name, email, password]);
+     
+        const query = 'INSERT INTO users (name, email, valid_code, password) VALUES (?, ?, ?, ?)';
+        const result = await this.connection.query(query, [name, email, secret, password]);
        
         return result[0].insertId;
       } catch (err) {
+        throw err;
+      }
+    }
+
+    async validateUser(id){
+      try{
+        const query = 'update users set validated = true where id = ?';
+        await this.connection.query(query, [id])
+      }
+      catch(err){
         throw err;
       }
     }
@@ -75,5 +91,7 @@ class UserRepository {
       }
     }
   }
+
+
   
   module.exports = UserRepository;

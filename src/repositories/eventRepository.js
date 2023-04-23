@@ -12,7 +12,11 @@ class EventRepository {
         throw err;
       }
     }
-  
+    /**
+     * 
+     * @param {string} eventId 
+     * @returns {Promise<any>}
+     */
     async getEventById(eventId) {
       try {
         const query = 'SELECT * FROM events WHERE id = ?';

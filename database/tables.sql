@@ -5,6 +5,8 @@ use FASTIFY_TEST
 CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     email VARCHAR(255) NOT NULL UNIQUE,
+    validated BOOLEAN DEFAULT false,
+    valid_code varchar(255) NOT NULL,
     password VARCHAR(255) NOT NULL,
     name VARCHAR(255) NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
@@ -35,7 +37,6 @@ CREATE TABLE events (
 );
 
 CREATE TABLE invitations (
-  id INT NOT NULL AUTO_INCREMENT,
   secret VARCHAR(255) NOT NULL,
   invited_by INT NOT NULL,
   user_id INT NOT NULL,
@@ -45,7 +46,7 @@ CREATE TABLE invitations (
   expiration_time TIMESTAMP DEFAULT (NOW() + INTERVAL 24 HOUR),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW() ON UPDATE NOW(),
-  PRIMARY KEY (id),
+  PRIMARY KEY (invited_by,user_id,event_id),
     FOREIGN KEY fk_invitations_users_received (user_id) REFERENCES users(id) ON DELETE CASCADE,
 
   FOREIGN KEY fk_invitations_users (invited_by) REFERENCES users(id) ON DELETE CASCADE,
@@ -94,3 +95,5 @@ CREATE TABLE user_events (
     FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
     FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
 );
+
+

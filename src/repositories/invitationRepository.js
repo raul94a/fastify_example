@@ -4,10 +4,10 @@ class InvitationsRepository {
     }
 
     async create(invitation) {
-        const { secret, invitedBy, userId, eventId } = invitation;
-        const result = await this.pool.query(
-            'INSERT INTO invitations (secret, invited_by, user_id, event_id) VALUES (?, ?, ?, ?)',
-            [secret, invitedBy, userId, eventId]
+        const { secret, invitedBy, userId, email,eventId } = invitation;
+        const result = await this.connection.query(
+            'INSERT INTO invitations (secret, invited_by, user_id, email,event_id) VALUES (?, ?, ?, ?,?)',
+            [secret, invitedBy, userId, email,eventId]
         );
         return result.insertId;
     }
@@ -18,7 +18,7 @@ class InvitationsRepository {
         const values = [id];
 
         try {
-            const [rows] = await this.connection.execute(sql, values);
+            const [rows] = await this.connection.query(sql, values);
             const invitation = rows[0];
             return invitation;
         } catch (error) {
@@ -31,7 +31,7 @@ class InvitationsRepository {
         const sql = 'SELECT * FROM invitations WHERE email = ? and accepted is FALSE AND expiration_time < NOW()';
         const values = [email];
         try {
-            const [rows] = await this.connection.execute(sql, values);
+            const [rows] = await this.connection.query(sql, values);
             
             return rows;
         } catch (error) {
