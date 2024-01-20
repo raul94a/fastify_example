@@ -3,9 +3,9 @@ const pool = mysql.createPool(
     {
       user: 'fastify',
       port: 3306,
-      host: '172.24.77.48',
+      host: '____________',
       database: 'FASTIFY_TEST',
-      password: '26052027L',
+      password: '_________________',
       connectionLimit: 100,
     }
   );
